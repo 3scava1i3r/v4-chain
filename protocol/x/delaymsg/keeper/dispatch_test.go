@@ -2,6 +2,8 @@ package keeper_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cometbfttypes "github.com/cometbft/cometbft/types"
@@ -11,7 +13,7 @@ import (
 	"github.com/dydxprotocol/v4-chain/protocol/mocks"
 	testapp "github.com/dydxprotocol/v4-chain/protocol/testutil/app"
 	"github.com/dydxprotocol/v4-chain/protocol/testutil/constants"
-	"github.com/dydxprotocol/v4-chain/protocol/testutil/delaymsg"
+	"github.com/dydxprotocol/v4-chain/protocol/testutil/encoding"
 	keepertest "github.com/dydxprotocol/v4-chain/protocol/testutil/keeper"
 	bridgetypes "github.com/dydxprotocol/v4-chain/protocol/x/bridge/types"
 	"github.com/dydxprotocol/v4-chain/protocol/x/delaymsg/keeper"
@@ -19,7 +21,6 @@ import (
 	feetierstypes "github.com/dydxprotocol/v4-chain/protocol/x/feetiers/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var (
@@ -107,13 +108,13 @@ func setupMockKeeperMessageNotFound(t *testing.T, ctx sdk.Context, k *mocks.Dela
 	// Second message is not found.
 	k.On("GetMessage", ctx, uint32(0)).Return(types.DelayedMessage{
 		Id:          0,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg1),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg1),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(1)).Return(types.DelayedMessage{}, false).Once()
 	k.On("GetMessage", ctx, uint32(2)).Return(types.DelayedMessage{
 		Id:          2,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg3),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg3),
 		BlockHeight: 0,
 	}, true).Once()
 
@@ -142,17 +143,17 @@ func setupMockKeeperExecutionFailure(t *testing.T, ctx sdk.Context, k *mocks.Del
 	// All messages found.
 	k.On("GetMessage", ctx, uint32(0)).Return(types.DelayedMessage{
 		Id:          0,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg1),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg1),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(1)).Return(types.DelayedMessage{
 		Id:          1,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg2),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg2),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(2)).Return(types.DelayedMessage{
 		Id:          2,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg3),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg3),
 		BlockHeight: 0,
 	}, true).Once()
 
@@ -183,17 +184,17 @@ func setupMockKeeperMessageHandlerPanic(t *testing.T, ctx sdk.Context, k *mocks.
 	// All messages found.
 	k.On("GetMessage", ctx, uint32(0)).Return(types.DelayedMessage{
 		Id:          0,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg1),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg1),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(1)).Return(types.DelayedMessage{
 		Id:          1,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg2),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg2),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(2)).Return(types.DelayedMessage{
 		Id:          2,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg3),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg3),
 		BlockHeight: 0,
 	}, true).Once()
 
@@ -227,7 +228,7 @@ func setupMockKeeperDecodeFailure(t *testing.T, ctx sdk.Context, k *mocks.DelayM
 	// All messages found.
 	k.On("GetMessage", ctx, uint32(0)).Return(types.DelayedMessage{
 		Id:          0,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg1),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg1),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(1)).Return(types.DelayedMessage{
@@ -237,7 +238,7 @@ func setupMockKeeperDecodeFailure(t *testing.T, ctx sdk.Context, k *mocks.DelayM
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(2)).Return(types.DelayedMessage{
 		Id:          2,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg3),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg3),
 		BlockHeight: 0,
 	}, true).Once()
 
@@ -265,17 +266,17 @@ func setupMockKeeperDeletionFailure(t *testing.T, ctx sdk.Context, k *mocks.Dela
 	// All messages found.
 	k.On("GetMessage", ctx, uint32(0)).Return(types.DelayedMessage{
 		Id:          0,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg1),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg1),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(1)).Return(types.DelayedMessage{
 		Id:          1,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg2),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg2),
 		BlockHeight: 0,
 	}, true).Once()
 	k.On("GetMessage", ctx, uint32(2)).Return(types.DelayedMessage{
 		Id:          2,
-		Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg3),
+		Msg:         encoding.EncodeMessageToAny(t, constants.TestMsg3),
 		BlockHeight: 0,
 	}, true).Once()
 
