@@ -24,6 +24,11 @@ service Query {
     option (google.api.http).get =
         "/dydxprotocol/v4/delaymsg/block/message_ids/{block_height}";
   }
+
+  // Queries all DelayedMessages.
+  rpc AllMessages(QueryAllMessagesRequest) returns (QueryAllMessagesResponse) {
+    option (google.api.http).get = "/dydxprotocol/v4/delaymsg/messages/all";
+  }
 }
 
 // QueryNumMessagesRequest is the request type for the NumMessages RPC
@@ -47,3 +52,9 @@ message QueryBlockMessageIdsRequest { sint64 block_height = 1; }
 // QueryGetBlockMessageIdsResponse is the response type for the BlockMessageIds
 // RPC method.
 message QueryBlockMessageIdsResponse { repeated uint32 message_ids = 1; }
+
+// QueryAllMessagesRequest is the request type for the AllMessages RPC method.
+message QueryAllMessagesRequest {}
+
+// QueryAllMessagesResponse is the response type for the AllMessages RPC method.
+message QueryAllMessagesResponse { repeated DelayedMessage messages = 1; }

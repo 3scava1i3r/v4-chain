@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 
@@ -78,5 +79,25 @@ func (k Keeper) BlockMessageIds(
 	}
 	return &types.QueryBlockMessageIdsResponse{
 		MessageIds: blockMessageIds.Ids,
+	}, nil
+}
+
+// AllMessages processes a query request/response for all messages from state.
+func (k Keeper) AllMessages(
+	c context.Context,
+	req *types.QueryAllMessagesRequest,
+) (
+	*types.QueryAllMessagesResponse,
+	error,
+) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	allMessages := k.GetAllDelayedMessages(ctx)
+
+	return &types.QueryAllMessagesResponse{
+		Messages: allMessages,
 	}, nil
 }

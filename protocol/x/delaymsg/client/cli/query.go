@@ -3,8 +3,9 @@ package cli
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"strconv"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/dydxprotocol/v4-chain/protocol/x/delaymsg/types"
@@ -25,6 +26,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryNumMessages())
 	cmd.AddCommand(CmdQueryMessage())
 	cmd.AddCommand(CmdQueryBlockMessageIds())
+	cmd.AddCommand(CmdQueryAllMessages())
 
 	return cmd
 }
@@ -107,6 +109,29 @@ func CmdQueryBlockMessageIds() *cobra.Command {
 				&types.QueryBlockMessageIdsRequest{
 					BlockHeight: id,
 				},
+			)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryAllMessages() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get-all-messages",
+		Short: "get all delayed messages",
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.AllMessages(
+				context.Background(),
+				&types.QueryAllMessagesRequest{},
 			)
 			if err != nil {
 				return err

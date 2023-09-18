@@ -3,6 +3,9 @@
 package cli_test
 
 import (
+	"strconv"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,8 +17,6 @@ import (
 	"github.com/dydxprotocol/v4-chain/protocol/x/delaymsg/client/cli"
 	"github.com/dydxprotocol/v4-chain/protocol/x/delaymsg/types"
 	"github.com/stretchr/testify/require"
-	"strconv"
-	"testing"
 )
 
 const (
@@ -158,6 +159,52 @@ func TestQueryBlockMessageIds(t *testing.T) {
 				var resp types.QueryBlockMessageIdsResponse
 				require.NoError(t, ctx.Codec.UnmarshalJSON(out.Bytes(), &resp))
 				require.Equal(t, tc.expectedBlockMessageIds, resp.MessageIds)
+			}
+		})
+	}
+}
+
+func TestQueryAllMessages(t *testing.T) {
+	tests := map[string]struct {
+		state *types.GenesisState
+	}{
+		"Default: no message": {
+			state: types.DefaultGenesis(),
+		},
+		"Two messages": {
+			state: &types.GenesisState{
+				NumMessages: 2,
+				DelayedMessages: []*types.DelayedMessage{
+					{
+						Id:          3,
+						Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg2),
+						BlockHeight: 10,
+					},
+					{
+						Id:          4,
+						Msg:         delaymsg.EncodeMessageToAny(t, constants.TestMsg3),
+						BlockHeight: 55,
+					},
+				},
+			},
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, ctx := setupNetwork(t, tc.state)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdQueryAllMessages(), []string{})
+			require.NoError(t, err)
+
+			var resp types.QueryAllMessagesResponse
+			require.NoError(t, ctx.Codec.UnmarshalJSON(out.Bytes(), &resp))
+
+			require.Equal(t, tc.state.NumMessages, uint32(len(resp.Messages)))
+
+			for i, msg := range resp.Messages {
+				err := msg.UnpackInterfaces(ctx.Codec)
+				require.NoError(t, err)
+
+				require.Equal(t, tc.state.DelayedMessages[i], msg)
 			}
 		})
 	}

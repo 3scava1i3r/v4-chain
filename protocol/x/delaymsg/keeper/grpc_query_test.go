@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"testing"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dydxprotocol/v4-chain/protocol/testutil/constants"
@@ -8,7 +10,6 @@ import (
 	keepertest "github.com/dydxprotocol/v4-chain/protocol/testutil/keeper"
 	"github.com/dydxprotocol/v4-chain/protocol/x/delaymsg/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNumMessages(t *testing.T) {
@@ -123,4 +124,48 @@ func TestBlockMessageIds_InvalidHeight(t *testing.T) {
 	ctx, delaymsg, _, _, _, _ := keepertest.DelayMsgKeepers(t)
 	_, err := delaymsg.BlockMessageIds(sdk.WrapSDKContext(ctx), &types.QueryBlockMessageIdsRequest{BlockHeight: -1})
 	require.ErrorContains(t, err, "invalid block height")
+}
+
+func TestAllMessages(t *testing.T) {
+	tests := map[string]struct {
+		delayedMessages []sdk.Msg
+	}{
+		"No messages": {},
+		"Two messages": {
+			delayedMessages: []sdk.Msg{
+				constants.TestMsg1,
+				constants.TestMsg2,
+			},
+		},
+		"Three messages": {
+			delayedMessages: []sdk.Msg{
+				constants.TestMsg1,
+				constants.TestMsg2,
+				constants.TestMsg3,
+			},
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			ctx, keeper, _, _, _, _ := keepertest.DelayMsgKeepers(t)
+			for _, msg := range tc.delayedMessages {
+				_, err := keeper.DelayMessageByBlocks(ctx, msg, 1)
+				require.NoError(t, err)
+			}
+
+			wctx := sdk.WrapSDKContext(ctx)
+			res, err := keeper.AllMessages(wctx, &types.QueryAllMessagesRequest{})
+			require.NoError(t, err)
+
+			expectedMessages := make([]*types.DelayedMessage, len(tc.delayedMessages))
+			for i, msg := range tc.delayedMessages {
+				expectedMessages[i] = &types.DelayedMessage{
+					Id:          uint32(i),
+					Msg:         delaymsg.EncodeMessageToAny(t, msg),
+					BlockHeight: 1,
+				}
+			}
+			require.Equal(t, expectedMessages, res.Messages)
+		})
+	}
 }
